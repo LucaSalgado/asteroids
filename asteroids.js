@@ -9,11 +9,8 @@ function Remap(x, in_min, in_max, out_min, out_max)
                       
 //------------------------------------------------
 
-let minO = 0;
-let maxO = 5;
-let passO = 0.005;
-let gOri = 4;
-let gainP = 1.5;
+let gOri = 4; // ganho no ângulo de orientação
+let gainP = 3; // ganho na velocidade
 
 
 const canvas = document.querySelector('canvas');
@@ -68,39 +65,8 @@ class Player {
         }
     }
     moveFrente(){ // o desenho está em 90° em relação com a origem, então tive que adaptar a relação de navegação pelos quadrantes
-
-        if(this.ori >= 0 && this.ori <= 90)
-        {
-            
-            this.x += Remap(this.ori, 0, 90, passO, maxO-passO-gainP);
-            this.y += Remap(this.ori, 0, 90, passO-maxO+gainP, -passO);
-
-        }else if(this.ori > 90 && this.ori <= 180)
-        {
-    
-            this.x += Remap(this.ori, 90, 180, maxO-gainP, minO);
-            this.y += Remap(this.ori, 90, 180, minO, maxO-gainP);
-
-        }else if(this.ori > 180 && this.ori <= 270)
-        {
-
-            this.x += Remap(this.ori, 180, 270, -passO, -maxO+gainP);
-            this.y += Remap(this.ori, 180, 270, maxO-passO-gainP, minO);
-
-        }else if(this.ori > 270 && this.ori < 360)
-        {
-            
-            this.x += Remap(this.ori, 270, 360, passO-maxO+gainP, minO);
-            this.y += Remap(this.ori, 270, 360, -passO, -maxO+gainP);
-
-        }
-        else // angulo igual a 360
-        {
-
-            this.y -= maxO-gainP;
-
-        }
-
+        this.x += (Math.cos((this.ori+270)*Math.PI / 180)*gainP);
+        this.y += (Math.sin((this.ori+270)*Math.PI / 180)*gainP);
     }
 }
 
@@ -116,6 +82,21 @@ class Projetil {
         c.strokeStyle = 'white';
         c.stroke();
     }
+
+    update(){
+        this.draw();
+        this.x += this.velocidade.x;
+        this.y += this.velocidade.y;
+    }
+}
+
+let projeteis = [];
+
+function animate() {
+    requestAnimationFrame(animate);
+    projeteis.forEach((projetil) => {
+        projetil.update();
+    });
 }
 
 function mudaDirecao() {
@@ -164,7 +145,6 @@ function run() {
         }
     });
     document.addEventListener("keyup", (e) => {
-        console.log(e.key);
         if(controller[e.key])
         {
             controller[e.key] = false  
