@@ -296,19 +296,19 @@ function animate() {
     });
     asteroids.forEach((aster, index) => {
         aster.update();
-        /*projeteis.forEach((projetil, pIndex) =>{
-            const dist = Math.hypot((projetil.x) - (aster.x+aster.cx), (projetil.y) - (aster.y+aster.cy+50));
-            if(dist < 3)
+        projeteis.forEach((projetil, pIndex) =>{
+            const dist = Math.hypot(projetil.x - aster.x, projetil.y - aster.y);
+            if(dist < 30)
             {
                 console.log(dist);
-                console.log(`projetil x-> ${projetil.x+101} y-> ${projetil.y+105}`);
-                console.log(`asteroid x-> ${aster.x+aster.cx} y-> ${aster.y+aster.cy+50}`);
+                console.log(`projetil x-> ${projetil.x} y-> ${projetil.y}`);
+                console.log(`asteroid x-> ${aster.x} y-> ${aster.y}`);
                 setTimeout(() => {
                     asteroids.splice(index,1);
                     projeteis.splice(pIndex,1);
                 }, 0);
             }
-        });*/
+        });
     });
 }
 
