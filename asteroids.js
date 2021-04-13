@@ -1,42 +1,5 @@
 "use strict";
 
-/* contornos dos shapes (retangulos)
-    shape 1
-    coordenadas para o centro x -> dx-35, y -> dy+17.5
-    dx = 200;
-    dy = 200;
-    c.moveTo(dx,dy-15);
-    c.lineTo(dx,dy+50);
-    c.lineTo(dx-80,dy+50);
-    c.lineTo(dx-80,dy-15);
-    c.lineTo(dx,dy-15);
-    c.strokeStyle = 'white';
-    c.stroke();
-
-    shape 2
-    coordenadas para o centro x -> dx-35, y -> dy+12.5
-    dx = 100
-    dy = 100
-    c.moveTo(dx,dy-15);
-    c.lineTo(dx,dy+40);
-    c.lineTo(dx-70,dy+40);
-    c.lineTo(dx-70,dy-15);
-    c.lineTo(dx,dy-15);
-    c.strokeStyle = 'white';
-    c.stroke();
-
-    shape 3
-    //coordenadas para o centro x -> dx-35, y -> dy+7.5
-    dx = 300
-    dy = 300
-    c.moveTo(dx,dy-20);
-    c.lineTo(dx,dy+35);
-    c.lineTo(dx-40,dy+35);
-    c.lineTo(dx-40,dy-20);
-    c.lineTo(dx,dy-20);
-    c.strokeStyle = 'white';
-    c.stroke();
-*/
 //função auxiliar
 
 function Remap(x, in_min, in_max, out_min, out_max)
@@ -44,12 +7,12 @@ function Remap(x, in_min, in_max, out_min, out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
              
-function gira(poligono, teta){
+function gira(poligono, teta, escala){
     poligono.forEach((ponto) => {// rotaciona os pontos em relação a origem
         let xt = ponto.x;
         let yt = ponto.y
-        ponto.x = ((Math.sin(teta*Math.PI / 180))*yt)+((Math.cos(teta*Math.PI / 180))*xt);
-        ponto.y = ((-Math.sin(teta*Math.PI / 180))*xt)+((Math.cos(teta*Math.PI / 180))*yt);
+        ponto.x = (((Math.sin(teta*Math.PI / 180))*yt)+((Math.cos(teta*Math.PI / 180))*xt))*escala;
+        ponto.y = (((-Math.sin(teta*Math.PI / 180))*xt)+((Math.cos(teta*Math.PI / 180))*yt))*escala;
       
     });
 }
@@ -108,7 +71,7 @@ class Player {
         {
             this.ori += 360;
         }
-        gira(this.nave,-gOri);
+        gira(this.nave,-gOri,1);
     }
     moveAntHorario(){
         this.ori += gOri;
@@ -116,7 +79,7 @@ class Player {
         {
             this.ori -= 360;
         }
-        gira(this.nave,gOri);
+        gira(this.nave,gOri,1);
     }
     moveFrente(){ // o desenho está em 90° em relação com a origem, então tive que adaptar a relação de navegação pelos quadrantes
         this.x -= (Math.cos((this.ori+90)*Math.PI / 180)*gainP);
@@ -173,10 +136,11 @@ class Projetil {
 }
 
 class Asteroids{
-    constructor(x, y, ori){
+    constructor(x, y, ori, escala){
         this.x = x;
         this.y = y;
         this.ori = ori;
+        this.escala = escala; // escala com tamanho igual a 1, são asteroids normais, escala com tamanho igual a 0.65 são as teroids de impacto
     }
 
     update(){
@@ -201,15 +165,15 @@ class Asteroids{
 //-----------------------------------------------------------
 // Funções do jogo
 
-function criaAsteroids() {
-    let aX;
-    let aY;
-    do{
-        aX = Math.floor(Math.random() * canvas.width);
-        aY = Math.floor(Math.random() * canvas.height);
-    }while(Math.hypot(aX - player.x, aY - player.y) < 300)
+function criaAsteroids(aX,aY,escala) {
+    if(escala == 1){
+        do{
+            aX = Math.floor(Math.random() * canvas.width);
+            aY = Math.floor(Math.random() * canvas.height);
+        }while(Math.hypot(aX - player.x, aY - player.y) < 300)
+    }
     asteroids.push(
-        new Asteroids(aX, aY, Math.floor(Math.random() * 360))
+        new Asteroids(aX, aY, Math.floor(Math.random() * 360), escala)
     );
     switch(Math.floor(Math.random() * 3)){ // seleciona qual dos três tipos de asteroids será desenhado
         case 0:
@@ -235,7 +199,7 @@ function criaAsteroids() {
                 c.strokeStyle = 'white';
                 c.stroke();
             }
-            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori, asteroids[asteroids.length-1].escala);
             break;
         case 1:
             asteroids[asteroids.length-1].asteroid = [// coordenadas dos pontos que determinam a figura
@@ -258,7 +222,7 @@ function criaAsteroids() {
                 c.strokeStyle = 'white';
                 c.stroke();
             }
-            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori, asteroids[asteroids.length-1].escala);
             break;
         default:
             asteroids[asteroids.length-1].asteroid = [// coordenadas dos pontos que determinam a figura
@@ -281,7 +245,7 @@ function criaAsteroids() {
                 c.strokeStyle = 'white';
                 c.stroke();
             }
-            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori, asteroids[asteroids.length-1].escala);
             break;
     }
 }
@@ -298,7 +262,7 @@ function animate() {
         aster.update();
         projeteis.forEach((projetil, pIndex) =>{
             const dist = Math.hypot(projetil.x - aster.x, projetil.y - aster.y);
-            if(dist < 30)
+            if(dist < 30*aster.escala)
             {
                 console.log(dist);
                 console.log(`projetil x-> ${projetil.x} y-> ${projetil.y}`);
@@ -307,6 +271,12 @@ function animate() {
                     asteroids.splice(index,1);
                     projeteis.splice(pIndex,1);
                 }, 0);
+                if(aster.escala == 1){
+                    setTimeout(() => {
+                        criaAsteroids(aster.x,aster.y,0.65);
+                        criaAsteroids(aster.x,aster.y,0.65);
+                    }, 10);
+                }
             }
         });
     });
@@ -380,7 +350,7 @@ function run() {
         }
     });
     for(let i=0; i<4; i++){
-        criaAsteroids();
+        criaAsteroids(0,0,1);
     }
     loopPrincipal();
 }
