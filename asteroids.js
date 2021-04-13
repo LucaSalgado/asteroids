@@ -43,13 +43,22 @@ function Remap(x, in_min, in_max, out_min, out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-                      
+             
+function gira(poligono, teta){
+    poligono.forEach((ponto) => {// rotaciona os pontos em relação a origem
+        let xt = ponto.x;
+        let yt = ponto.y
+        ponto.x = ((Math.sin(teta*Math.PI / 180))*yt)+((Math.cos(teta*Math.PI / 180))*xt);
+        ponto.y = ((-Math.sin(teta*Math.PI / 180))*xt)+((Math.cos(teta*Math.PI / 180))*yt);
+      
+    });
+}
 //------------------------------------------------
 // variaveis globais
 const gOri = 4; // ganho no ângulo de orientação
 const gainP = 5; // ganho na velocidade
-const bMin = -120; // offset da borda minima do canvas
-const bMax = -80; // offset da borda maxima do canvas
+const bMin = -30; // offset da borda minima do canvas
+const bMax = 30; // offset da borda maxima do canvas
 
 
 const canvas = document.querySelector('canvas');
@@ -80,16 +89,6 @@ class Player {
         ];
     }
 
-    gira(teta){
-        this.nave.forEach((ponto) => {// rotaciona os pontos em relação a origem
-            let xt = ponto.x;
-            let yt = ponto.y
-            ponto.x = ((Math.sin(teta*Math.PI / 180))*yt)+((Math.cos(teta*Math.PI / 180))*xt);
-            ponto.y = ((-Math.sin(teta*Math.PI / 180))*xt)+((Math.cos(teta*Math.PI / 180))*yt);
-          
-        });
-    }
-
     draw(){
 
         c.beginPath();
@@ -109,7 +108,7 @@ class Player {
         {
             this.ori += 360;
         }
-        this.gira(-gOri);
+        gira(this.nave,-gOri);
     }
     moveAntHorario(){
         this.ori += gOri;
@@ -117,7 +116,7 @@ class Player {
         {
             this.ori -= 360;
         }
-        this.gira(gOri);
+        gira(this.nave,gOri);
     }
     moveFrente(){ // o desenho está em 90° em relação com a origem, então tive que adaptar a relação de navegação pelos quadrantes
         this.x -= (Math.cos((this.ori+90)*Math.PI / 180)*gainP);
@@ -182,18 +181,18 @@ class Asteroids{
 
     update(){
         this.draw();
-       // this.x += (Math.cos((this.ori+270)*Math.PI / 180)*(gainP-1.5));
-      //  this.y += (Math.sin((this.ori+270)*Math.PI / 180)*(gainP-1.5));
+        this.x -= (Math.cos((this.ori+90)*Math.PI / 180)*(gainP-1.5));
+        this.y += (Math.sin((this.ori+90)*Math.PI / 180)*(gainP-1.5));
 
         // faz o asteroid atravessar a tela
         if(this.x < bMin){
-            this.x = canvas.width+30;
-        }else if(this.x > canvas.width+30){
+            this.x = canvas.width+bMax;
+        }else if(this.x > canvas.width+bMax){
             this.x = bMin;
         }
         if(this.y < bMin){
-            this.y = canvas.height+30;
-        }else if(this.y > canvas.height+30){
+            this.y = canvas.height+bMax;
+        }else if(this.y > canvas.height+bMax){
             this.y = bMin;
         }
     }
@@ -210,112 +209,79 @@ function criaAsteroids() {
         aY = Math.floor(Math.random() * canvas.height);
     }while(Math.hypot(aX - player.x, aY - player.y) < 300)
     asteroids.push(
-       // new Asteroids(aX, aY, Math.floor(Math.random() * 360))
-       new Asteroids(aX, aY, 0)
+        new Asteroids(aX, aY, Math.floor(Math.random() * 360))
     );
     switch(Math.floor(Math.random() * 3)){ // seleciona qual dos três tipos de asteroids será desenhado
         case 0:
-            asteroids[asteroids.length-1].draw = function() {
-                c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original*/
-
+            asteroids[asteroids.length-1].asteroid = [// coordenadas dos pontos que determinam a figura
+                {x:35,y:-17},
+                {x:35,y:7.5},
+                {x:15,y:12.5},
+                {x:-5,y:27.5},
+                {x:-35,y:12.5},
+                {x:-30,y:-17.5},
+                {x:5,y:-27.5}
+              ]
+            asteroids[asteroids.length-1].draw = function() { // função de desenho do asteroid em questão
                 c.beginPath();
-                c.moveTo(this.x,this.y);
-                c.lineTo(this.x, this.y+25);
-                c.lineTo(this.x-20, this.y+30);
-                c.lineTo(this.x-40, this.y+55);
-                c.lineTo(this.x-70, this.y+30);
-                c.lineTo(this.x-65, this.y);
-                c.lineTo(this.x-30, this.y-10);
+                c.lineTo(this.asteroid[0].x+this.x,this.asteroid[0].y+this.y);
+                c.lineTo(this.asteroid[1].x+this.x,this.asteroid[1].y+this.y);
+                c.lineTo(this.asteroid[2].x+this.x,this.asteroid[2].y+this.y);
+                c.lineTo(this.asteroid[3].x+this.x,this.asteroid[3].y+this.y);
+                c.lineTo(this.asteroid[4].x+this.x,this.asteroid[4].y+this.y);
+                c.lineTo(this.asteroid[5].x+this.x,this.asteroid[5].y+this.y);
+                c.lineTo(this.asteroid[6].x+this.x,this.asteroid[6].y+this.y);
                 c.closePath();
                 c.strokeStyle = 'white';
                 c.stroke();
-
-                c.restore();
-
-               /* c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original*/
-
-                c.rect(this.x-35,this.y+17.5,1,1); //coordenadas para o centro x -> dx-35, y -> dy+17.5
-                c.strokeStyle = 'white';
-                c.stroke();
-
-               //c.restore();
             }
-            asteroids[asteroids.length-1].cx = -35;// referência para o centro do retângulo de colisão
-            asteroids[asteroids.length-1].cy = 17.5;
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
             break;
         case 1:
-            asteroids[asteroids.length-1].draw = function() {
-                c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original
-
+            asteroids[asteroids.length-1].asteroid = [// coordenadas dos pontos que determinam a figura
+                {x:35,y:-12.5},
+                {x:15,y:22.5},
+                {x:-25,y:27.5},
+                {x:-35,y:-7.5},
+                {x:-5,y:-27.5},
+                {x:0,y:-2.5}
+            ]
+            asteroids[asteroids.length-1].draw = function() {// função de desenho do asteroid em questão
                 c.beginPath();
-                c.moveTo(this.x,this.y);
-                c.lineTo(this.x-20, this.y+35);
-                c.lineTo(this.x-60, this.y+40);
-                c.lineTo(this.x-70, this.y+5);
-                c.lineTo(this.x-40, this.y-15);
-                c.lineTo(this.x-35, this.y+10);
+                c.lineTo(this.asteroid[0].x+this.x,this.asteroid[0].y+this.y);
+                c.lineTo(this.asteroid[1].x+this.x,this.asteroid[1].y+this.y);
+                c.lineTo(this.asteroid[2].x+this.x,this.asteroid[2].y+this.y);
+                c.lineTo(this.asteroid[3].x+this.x,this.asteroid[3].y+this.y);
+                c.lineTo(this.asteroid[4].x+this.x,this.asteroid[4].y+this.y);
+                c.lineTo(this.asteroid[5].x+this.x,this.asteroid[5].y+this.y);
                 c.closePath();
                 c.strokeStyle = 'white';
                 c.stroke();
-
-                c.restore();
-
-               /* c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original*/
-
-                c.rect(this.x-35,this.y+12.5,1,1); //coordenadas para o centro x -> dx-35, y -> dy+12.5
-                c.strokeStyle = 'white';
-                c.stroke();
-
-                //c.restore();
             }
-            asteroids[asteroids.length-1].cx = -35;// referência para o centro do retângulo de colisão
-            asteroids[asteroids.length-1].cy = 12.5;
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
             break;
         default:
-            asteroids[asteroids.length-1].draw = function(){
-                c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original
-
+            asteroids[asteroids.length-1].asteroid = [// coordenadas dos pontos que determinam a figura
+                {x:35,y:-7.5},
+                {x:15,y:27.5},
+                {x:-20,y:19.5},
+                {x:-35,y:-7.5},
+                {x:-30,y:-27.5},
+                {x:5,y:-25.5}
+              ]
+            asteroids[asteroids.length-1].draw = function(){// função de desenho do asteroid em questão
                 c.beginPath();
-                c.moveTo(this.x,this.y);
-                c.lineTo(this.x-20, this.y+35);
-                c.lineTo(this.x-55, this.y+27);
-                c.lineTo(this.x-70, this.y);
-                c.lineTo(this.x-65, this.y-20);
-                c.lineTo(this.x-30, this.y-18);
+                c.lineTo(this.asteroid[0].x+this.x,this.asteroid[0].y+this.y);
+                c.lineTo(this.asteroid[1].x+this.x,this.asteroid[1].y+this.y);
+                c.lineTo(this.asteroid[2].x+this.x,this.asteroid[2].y+this.y);
+                c.lineTo(this.asteroid[3].x+this.x,this.asteroid[3].y+this.y);
+                c.lineTo(this.asteroid[4].x+this.x,this.asteroid[4].y+this.y);
+                c.lineTo(this.asteroid[5].x+this.x,this.asteroid[5].y+this.y);
                 c.closePath();
                 c.strokeStyle = 'white';
                 c.stroke();
-
-                c.restore();
-
-                /*c.save();
-                c.translate(this.x, this.y);// move o centro da matriz para as coordenadas
-                c.rotate(this.ori*Math.PI / 180);// rotaciona a matriz de acordo com com o angulo
-                c.translate(-(this.x), -(this.y));// retorna o centro da matriz para a posição original*/
-
-                c.rect(this.x-35,this.y+7.5,1,1); //coordenadas para o centro x -> dx-35, y -> dy+7.5
-                c.strokeStyle = 'white';
-                c.stroke();
-
-               // c.restore();
             }
-            asteroids[asteroids.length-1].cx = -35;// referência para o centro do retângulo de colisão
-            asteroids[asteroids.length-1].cy = 7.5;
+            gira(asteroids[asteroids.length-1].asteroid, asteroids[asteroids.length-1].ori);
             break;
     }
 }
@@ -330,7 +296,7 @@ function animate() {
     });
     asteroids.forEach((aster, index) => {
         aster.update();
-        projeteis.forEach((projetil, pIndex) =>{
+        /*projeteis.forEach((projetil, pIndex) =>{
             const dist = Math.hypot((projetil.x) - (aster.x+aster.cx), (projetil.y) - (aster.y+aster.cy+50));
             if(dist < 3)
             {
@@ -342,17 +308,17 @@ function animate() {
                     projeteis.splice(pIndex,1);
                 }, 0);
             }
-        });
+        });*/
     });
 }
 
 function acoes() {
 
     if (controller.ArrowLeft) {
-        player.moveHorario();
+        player.moveAntHorario();
        // controller.ArrowLeft = false;
     } else if (controller.ArrowRight) {
-        player.moveAntHorario();
+        player.moveHorario();
         //controller.ArrowRight = false;
     }
     if (controller.ArrowUp) {
