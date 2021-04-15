@@ -41,7 +41,8 @@ const lmt = 4; // limite de "tempo de vida" de um projetil
 let asteroids = []; // array de armazenamento dos asteroids
 let naves = []; // array de armazenamento dos players
 
-let score = 0;
+let score = 0;// armazena o total de pontos feito pelo jogador
+let exLife = 0;// no jogo original a cada 10,000 pontos o jogador ganha uma vida extra, então essa variável vai rastrear isso
 let vidas = 3; // número de vidas do player
 let nA = 4; // número de asteroids a serem criados a cada rodada
 let z = false; // variável auxiliar para criar os asteroids a cada rodada
@@ -367,7 +368,14 @@ function animate() {
             let distancia = Math.sqrt(dx * dx + dy * dy);
             if(distancia < (aster.raio*aster.escala))
             {
-                score +=10;
+                if(aster.escala == 1)
+                {
+                    score += 50;
+                    exLife += 50;
+                }else {
+                    score += 100; 
+                    exLife += 100;
+                }
                 setTimeout(() => {
                     asteroids.splice(index,1);
                     projeteis.splice(pIndex,1);
@@ -497,7 +505,8 @@ function animate() {
             let rdistancia = Math.sqrt(rdx * rdx + rdy * rdy);
             if(ldistancia < saucer.box[0].raio || mdistancia < saucer.box[1].raio || rdistancia < saucer.box[2].raio)
             {      
-                score += 15;
+                score += 150;
+                exLife += 150;
                 saucer.emTela = false;
                 setTimeout(() => {
                     projeteis.splice(index,1);
@@ -568,6 +577,10 @@ function clearBoard() {
 }
 
 function gameOver() {
+    if(exLife >= 10000){
+        exLife -= 10000;
+        vidas += 1;
+    }
     if(vidas <= 0){
         alert(`Fim do jogo\n\n seu score final é: ${score} pontos`);
         return true;
@@ -615,6 +628,7 @@ function run() {
             controller[e.key] = false;  
         }
     });
+
     for(let i=0; i<nA; i++){
         criaAsteroids(0,0,1);
     }
@@ -633,7 +647,8 @@ const controller = {    ArrowLeft: false,
                         ArrowUp: false,
                         ArrowRight: false,
                         c: false,
-                        v:false
+                        v:false,
+                        Enter:false
 }
 
 run();
